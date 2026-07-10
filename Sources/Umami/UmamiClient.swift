@@ -1,0 +1,114 @@
+import Foundation
+import os
+#if canImport(UIKit)
+import UIKit
+#endif
+
+final class UmamiClient {
+    private let config: Configuration
+    private let deviceInfo: DeviceInfo
+    private let installId: String
+    private let queue: EventQueue
+    private let uploader: EventUploader
+    private let defaults: UserDefaults
+    private let work = DispatchQueue(label: "com.hjerpbakk.umami")
+    private let log = Logger(subsystem: "com.hjerpbakk.umami", category: "client")
+
+    private var timer: DispatchSourceTimer?
+    private var flushing = false
+    private var consecutiveFailures = 0
+    private var nextAttempt = Date.distantPast
+
+    private let enabledKey = "umami.enabled"
+
+    // Test hooks (internal).
+    var onUploadFinished: ((Bool) -> Void)?
+    func drainForTesting() { work.sync {} }
+
+    init(config: Configuration, deviceInfo: DeviceInfo, installId: String,
+         queue: EventQueue, uploader: EventUploader, defaults: UserDefaults) {
+        self.config = config
+        self.deviceInfo = deviceInfo
+        self.installId = installId
+        self.queue = queue
+        self.uploader = uploader
+        self.defaults = defaults
+    }
+
+    var isEnabled: Bool {
+        defaults.object(forKey: enabledKey) == nil ? true : defaults.bool(forKey: enabledKey)
+    }
+
+    func setEnabled(_ enabled: Bool) {
+        defaults.set(enabled, forKey: enabledKey)
+    }
+
+    func start() {
+        startTimer()
+        observeLifecycle()
+        track("app_started")
+    }
+
+    func track(_ name: String, _ data: [String: AnalyticsValue] = [:]) {
+        guard isEnabled else { return }
+        work.async {
+            self.queue.append(Event(name: name, data: data))
+            if self.queue.count >= self.config.batchSize {
+                self.flushLocked()
+            }
+        }
+    }
+
+    func flush() {
+        work.async { self.flushLocked() }
+    }
+
+    // Must be called on `work`.
+    private func flushLocked() {
+        guard isEnabled, !flushing, queue.count > 0, Date() >= nextAttempt else { return }
+        let batch = queue.peekBatch(config.batchSize)
+        guard !batch.isEmpty else { return }
+        let payloads = batch.map {
+            PayloadBuilder.build(event: $0, config: config, device: deviceInfo, installId: installId)
+        }
+        let userAgent = PayloadBuilder.userAgent(config: config, device: deviceInfo)
+        flushing = true
+        uploader.send(payloads, to: config.baseURL, userAgent: userAgent) { [weak self] success in
+            guard let self else { return }
+            self.work.async {
+                self.flushing = false
+                if success {
+                    self.queue.removeFirst(batch.count)
+                    self.consecutiveFailures = 0
+                    self.nextAttempt = .distantPast
+                    self.onUploadFinished?(true)
+                    if self.queue.count > 0 { self.flushLocked() }
+                } else {
+                    self.consecutiveFailures += 1
+                    self.nextAttempt = Date().addingTimeInterval(
+                        Backoff.delay(failures: self.consecutiveFailures))
+                    self.log.debug("umami: batch upload failed, will retry (\(self.consecutiveFailures) consecutive failures)")
+                    self.onUploadFinished?(false)
+                }
+            }
+        }
+    }
+
+    private func startTimer() {
+        let t = DispatchSource.makeTimerSource(queue: work)
+        t.schedule(deadline: .now() + config.flushInterval, repeating: config.flushInterval)
+        t.setEventHandler { [weak self] in self?.flushLocked() }
+        t.resume()
+        timer = t
+    }
+
+    private func observeLifecycle() {
+        #if canImport(UIKit)
+        let nc = NotificationCenter.default
+        nc.addObserver(forName: UIApplication.didEnterBackgroundNotification,
+                       object: nil, queue: nil) { [weak self] _ in self?.flush() }
+        nc.addObserver(forName: UIApplication.willEnterForegroundNotification,
+                       object: nil, queue: nil) { [weak self] _ in self?.track("app_started") }
+        #endif
+    }
+}
