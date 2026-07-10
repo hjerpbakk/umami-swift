@@ -28,8 +28,12 @@ final class EventQueue {
         Array(events.prefix(n))
     }
 
-    func removeFirst(_ n: Int) {
-        events.removeFirst(min(n, events.count))
+    /// Removes the given events by identity (not position), so events evicted
+    /// from the front by `enforceMaxSize()` while a batch is in flight are not
+    /// mistaken for delivered events.
+    func remove(_ batch: [Event]) {
+        let ids = Set(batch.map(\.id))
+        events.removeAll { ids.contains($0.id) }
         persist()
     }
 

@@ -5,17 +5,17 @@ import UIKit
 import AppKit
 #endif
 
-public struct DeviceInfo: Sendable, Equatable {
-    public var appVersion: String
-    public var build: String
-    public var osName: String
-    public var osVersion: String
-    public var deviceModel: String
-    public var locale: String
-    public var screen: String
+struct DeviceInfo: Sendable, Equatable {
+    let appVersion: String
+    let build: String
+    let osName: String
+    let osVersion: String
+    let deviceModel: String
+    let locale: String
+    let screen: String
 
-    public init(appVersion: String, build: String, osName: String,
-                osVersion: String, deviceModel: String, locale: String, screen: String) {
+    init(appVersion: String, build: String, osName: String,
+         osVersion: String, deviceModel: String, locale: String, screen: String) {
         self.appVersion = appVersion
         self.build = build
         self.osName = osName

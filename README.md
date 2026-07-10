@@ -48,6 +48,7 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 - Each install gets a random id, generated once and stored on device. That id is sent as the visitor.
 - An `app_started` event is sent on launch and each time the app returns to the foreground, so Umami can count sessions.
 - Anything passed as event data (like `level` and `won` above) shows up as metadata on the event in Umami.
+- On macOS there's no foreground/background lifecycle to hook into, so `app_started` only fires once, on launch, and one run of the app counts as one session. Events are still sent while the app runs, on the periodic flush timer, and anything not yet sent when the app quits is kept on disk and sent the next time it launches.
 
 ## Privacy
 

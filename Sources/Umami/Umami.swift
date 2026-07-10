@@ -36,9 +36,9 @@ public enum Umami {
         currentClient()?.track(name, data)
     }
 
-    public static func setEnabled(_ enabled: Bool) { currentClient()?.setEnabled(enabled) }
+    public static func setEnabled(_ enabled: Bool) { EnabledFlag.set(enabled) }
 
-    public static var isEnabled: Bool { currentClient()?.isEnabled ?? true }
+    public static var isEnabled: Bool { EnabledFlag.get() }
 
     public static func flush() { currentClient()?.flush() }
 

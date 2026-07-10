@@ -32,12 +32,48 @@ final class EventQueueTests: XCTestCase {
         XCTAssertEqual(q2.peekBatch(10).map(\.name), ["kept"])
     }
 
-    func testRemoveFirst() {
+    func testRemoveByIdentityLeavesUnsentEvents() {
         let q = EventQueue(fileURL: tempFile(), maxSize: 10)
         q.append(Event(name: "a", data: [:]))
         q.append(Event(name: "b", data: [:]))
-        q.removeFirst(1)
-        XCTAssertEqual(q.peekBatch(10).map(\.name), ["b"])
+        q.append(Event(name: "c", data: [:]))
+        q.append(Event(name: "d", data: [:]))
+
+        // Simulate an in-flight batch: capture the front two events before more appends happen.
+        let sent = q.peekBatch(2)
+        XCTAssertEqual(sent.map(\.name), ["a", "b"])
+
+        // More events arrive while the upload is in flight.
+        q.append(Event(name: "e", data: [:]))
+
+        q.remove(sent)
+
+        // The sent events are gone; everything else (including events appended
+        // after the batch was captured) survives.
+        XCTAssertEqual(q.peekBatch(10).map(\.name), ["c", "d", "e"])
+    }
+
+    func testRemoveByIdentitySurvivesFrontEvictionAtMaxSize() {
+        let q = EventQueue(fileURL: tempFile(), maxSize: 3)
+        q.append(Event(name: "a", data: [:]))
+        q.append(Event(name: "b", data: [:]))
+        q.append(Event(name: "c", data: [:]))
+
+        // Capture the front batch as "in flight".
+        let sent = q.peekBatch(2)
+        XCTAssertEqual(sent.map(\.name), ["a", "b"])
+
+        // While the upload is in flight, more events arrive and evict "a" from the front
+        // because the queue is at maxSize.
+        q.append(Event(name: "d", data: [:]))
+        q.append(Event(name: "e", data: [:]))
+        XCTAssertEqual(q.peekBatch(10).map(\.name), ["c", "d", "e"])
+
+        // Removing the sent batch by identity must not resurrect or miscount:
+        // "a" was already evicted (never delivered as far as the queue is concerned,
+        // but it also can't be double-removed), "b" was truly sent and must go.
+        q.remove(sent)
+        XCTAssertEqual(q.peekBatch(10).map(\.name), ["c", "d", "e"])
     }
 
     func testLoadEnforcesMaxSize() {

@@ -75,6 +75,20 @@ final class UmamiClientTests: XCTestCase {
         XCTAssertEqual(queue.count, 1)
     }
 
+    func testStartSuppressesAppStartedWhenDisabled() {
+        let uploader = RecordingUploader()
+        let queue = EventQueue(fileURL: tempFile(), maxSize: 500)
+        let defaults = makeDefaults()
+        EnabledFlag.set(false, defaults)
+        let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
+                                 installId: "i", queue: queue, uploader: uploader,
+                                 defaults: defaults)
+        client.start()
+        client.drainForTesting()
+        XCTAssertTrue(uploader.captured.isEmpty)
+        XCTAssertEqual(queue.count, 0)
+    }
+
     func testDisabledDropsEvents() {
         let uploader = RecordingUploader()
         let queue = EventQueue(fileURL: tempFile(), maxSize: 500)

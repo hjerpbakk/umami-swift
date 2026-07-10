@@ -19,8 +19,6 @@ final class UmamiClient {
     private var consecutiveFailures = 0
     private var nextAttempt = Date.distantPast
 
-    private let enabledKey = "umami.enabled"
-
     // Test hooks (internal).
     var onUploadFinished: ((Bool) -> Void)?
     func drainForTesting() { work.sync {} }
@@ -35,13 +33,9 @@ final class UmamiClient {
         self.defaults = defaults
     }
 
-    var isEnabled: Bool {
-        defaults.object(forKey: enabledKey) == nil ? true : defaults.bool(forKey: enabledKey)
-    }
+    var isEnabled: Bool { EnabledFlag.get(defaults) }
 
-    func setEnabled(_ enabled: Bool) {
-        defaults.set(enabled, forKey: enabledKey)
-    }
+    func setEnabled(_ enabled: Bool) { EnabledFlag.set(enabled, defaults) }
 
     func start() {
         startTimer()
@@ -78,7 +72,7 @@ final class UmamiClient {
             self.work.async {
                 self.flushing = false
                 if success {
-                    self.queue.removeFirst(batch.count)
+                    self.queue.remove(batch)
                     self.consecutiveFailures = 0
                     self.nextAttempt = .distantPast
                     self.onUploadFinished?(true)
