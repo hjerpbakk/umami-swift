@@ -7,7 +7,8 @@ public enum Umami {
     nonisolated(unsafe) private static var client: UmamiClient?
     private static let log = Logger(subsystem: "com.hjerpbakk.umami", category: "facade")
 
-    /// Configure once at launch. Auto-sends `app_started` and begins flushing.
+    /// Configure once at launch. Auto-sends a launch pageview plus `app_started`
+    /// and begins flushing.
     public static func configure(websiteId: String,
                                  host: String,
                                  baseURL: URL = URL(string: "https://hjerpbakk-analytics.fly.dev")!,
@@ -34,6 +35,13 @@ public enum Umami {
 
     public static func track(_ name: String, _ data: [String: AnalyticsValue] = [:]) {
         currentClient()?.track(name, data)
+    }
+
+    /// Records a screen view, e.g. `Umami.screen("calendar")`. Sent as an Umami
+    /// pageview, so it populates the dashboard's Overview tab (visitors, visits,
+    /// views) and the pages list, in addition to the automatic launch pageview.
+    public static func screen(_ name: String, _ data: [String: AnalyticsValue] = [:]) {
+        currentClient()?.screen(name, data)
     }
 
     public static func setEnabled(_ enabled: Bool) { EnabledFlag.set(enabled) }

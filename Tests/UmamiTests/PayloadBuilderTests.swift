@@ -43,6 +43,18 @@ final class PayloadBuilderTests: XCTestCase {
         XCTAssertEqual(payload.payload.data["app_version"], .string("override"))
     }
 
+    func testPageviewOmitsNameAndCarriesPathAndTitle() throws {
+        let event = Event(name: nil, url: "/calendar", title: "calendar", data: [:])
+        let payload = PayloadBuilder.build(event: event, config: fixtureConfig(),
+                                           device: fixtureDevice(), installId: "install-9")
+        let data = try JSONEncoder().encode(payload)
+        let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        let p = json["payload"] as! [String: Any]
+        XCTAssertNil(p["name"])
+        XCTAssertEqual(p["url"] as? String, "/calendar")
+        XCTAssertEqual(p["title"] as? String, "calendar")
+    }
+
     func testUserAgentFormat() {
         let ua = PayloadBuilder.userAgent(config: fixtureConfig(), device: fixtureDevice())
         XCTAssertEqual(ua, "cardgame.ios/1.2.0 (iPhone16,2; iOS 18.5)")

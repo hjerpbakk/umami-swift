@@ -11,7 +11,9 @@ struct UmamiPayload: Encodable {
         let website: String
         let hostname: String
         let id: String
-        let name: String
+        /// Omitted for pageviews; Umami treats a payload without a name as a pageview.
+        let name: String?
+        let title: String?
         let url: String
         let language: String
         let screen: String

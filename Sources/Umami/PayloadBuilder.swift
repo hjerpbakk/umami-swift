@@ -14,7 +14,8 @@ enum PayloadBuilder {
             hostname: config.host,
             id: installId,
             name: event.name,
-            url: "/",
+            title: event.title,
+            url: event.url ?? "/",
             language: device.locale,
             screen: device.screen,
             data: data))

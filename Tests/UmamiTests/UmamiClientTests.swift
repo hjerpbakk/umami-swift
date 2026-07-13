@@ -75,6 +75,38 @@ final class UmamiClientTests: XCTestCase {
         XCTAssertEqual(queue.count, 1)
     }
 
+    func testScreenSendsPageviewWithNormalizedPath() {
+        let uploader = RecordingUploader()
+        let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
+                                 installId: "i", queue: EventQueue(fileURL: tempFile(), maxSize: 500),
+                                 uploader: uploader, defaults: makeDefaults())
+        let exp = expectation(description: "uploaded")
+        client.onUploadFinished = { _ in exp.fulfill() }
+        client.screen("calendar")
+        wait(for: [exp], timeout: 2)
+
+        let payload = uploader.captured[0][0]
+        XCTAssertNil(payload.payload.name)
+        XCTAssertEqual(payload.payload.url, "/calendar")
+        XCTAssertEqual(payload.payload.title, "calendar")
+    }
+
+    func testStartSendsLaunchPageviewAndAppStarted() {
+        let uploader = RecordingUploader()
+        let queue = EventQueue(fileURL: tempFile(), maxSize: 500)
+        let client = UmamiClient(config: config(batchSize: 20), deviceInfo: device(),
+                                 installId: "i", queue: queue, uploader: uploader,
+                                 defaults: makeDefaults())
+        client.start()
+        client.drainForTesting()
+
+        let queued = queue.peekBatch(2)
+        XCTAssertEqual(queued.count, 2)
+        XCTAssertNil(queued[0].name)
+        XCTAssertEqual(queued[0].url, "/")
+        XCTAssertEqual(queued[1].name, "app_started")
+    }
+
     func testStartSuppressesAppStartedWhenDisabled() {
         let uploader = RecordingUploader()
         let queue = EventQueue(fileURL: tempFile(), maxSize: 500)

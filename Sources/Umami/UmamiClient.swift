@@ -40,13 +40,26 @@ final class UmamiClient {
     func start() {
         startTimer()
         observeLifecycle()
+        screen("/")
         track("app_started")
     }
 
     func track(_ name: String, _ data: [String: AnalyticsValue] = [:]) {
+        enqueue(Event(name: name, data: data))
+    }
+
+    /// Records a screen view as a pageview (a payload without an event name),
+    /// which is what the dashboard's Overview tab counts.
+    func screen(_ name: String, _ data: [String: AnalyticsValue] = [:]) {
+        let path = name.hasPrefix("/") ? name : "/" + name
+        let title = path == "/" ? nil : String(path.dropFirst())
+        enqueue(Event(name: nil, url: path, title: title, data: data))
+    }
+
+    private func enqueue(_ event: Event) {
         guard isEnabled else { return }
         work.async {
-            self.queue.append(Event(name: name, data: data))
+            self.queue.append(event)
             if self.queue.count >= self.config.batchSize {
                 self.flushLocked()
             }
@@ -102,7 +115,10 @@ final class UmamiClient {
         nc.addObserver(forName: UIApplication.didEnterBackgroundNotification,
                        object: nil, queue: nil) { [weak self] _ in self?.flush() }
         nc.addObserver(forName: UIApplication.willEnterForegroundNotification,
-                       object: nil, queue: nil) { [weak self] _ in self?.track("app_started") }
+                       object: nil, queue: nil) { [weak self] _ in
+            self?.screen("/")
+            self?.track("app_started")
+        }
         #endif
     }
 }

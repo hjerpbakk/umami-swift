@@ -33,6 +33,9 @@ Umami.configure(
 Umami.track("game_started")
 Umami.track("level_completed", ["level": 7, "won": true])
 
+// When the user moves to another screen:
+Umami.screen("settings")
+
 // Opt-out:
 Umami.setEnabled(false)
 ```
@@ -46,7 +49,8 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 ## How it maps to Umami
 
 - Each install gets a random id, generated once and stored on device. That id is sent as the visitor.
-- An `app_started` event is sent on launch and each time the app returns to the foreground, so Umami can count sessions.
+- A pageview for `/` and an `app_started` event are sent on launch and each time the app returns to the foreground. The pageview is what populates the dashboard's Overview tab (visitors, visits, views); custom events alone only show up under Events.
+- `Umami.screen("settings")` sends a pageview for `/settings`, so screens show up in the pages list and add to the view count. Use it if you want per-screen numbers; skip it if launches are enough.
 - Anything passed as event data (like `level` and `won` above) shows up as metadata on the event in Umami.
 - On macOS there's no foreground/background lifecycle to hook into, so `app_started` only fires once, on launch, and one run of the app counts as one session. Events are still sent while the app runs, on the periodic flush timer, and anything not yet sent when the app quits is kept on disk and sent the next time it launches.
 

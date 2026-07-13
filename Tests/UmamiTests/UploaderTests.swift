@@ -11,7 +11,7 @@ final class UploaderTests: XCTestCase {
 
     private func samplePayload() -> UmamiPayload {
         UmamiPayload(payload: .init(website: "w", hostname: "h", id: "i",
-            name: "n", url: "/", language: "nb-NO", screen: "1x1", data: [:]))
+            name: "n", title: nil, url: "/", language: "nb-NO", screen: "1x1", data: [:]))
     }
 
     func testPostsBatchWithHeaders() {
