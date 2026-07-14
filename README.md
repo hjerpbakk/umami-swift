@@ -12,7 +12,7 @@ A small Swift package that sends app analytics to a self-hosted [Umami](https://
 Add the package via Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.2.0")
+.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.3.0")
 ```
 
 ## Usage
@@ -40,7 +40,7 @@ Umami.screen("settings")
 Umami.setEnabled(false)
 ```
 
-`baseURL` defaults to my own ingest host (`https://hjerpbakk-analytics.fly.dev`), so if you're pointing at that instance you can leave it out and just call `Umami.configure(websiteId:host:)`. If you self-host Umami elsewhere, pass your own `baseURL`.
+`baseURL` is required: point it at your own Umami instance. There is no default, so events only go where you send them and never to someone else's server by accident.
 
 `configure` also takes `flushInterval` (default 15 seconds) and `maxQueueSize` (default 500), if you want to tune how often and how much gets sent.
 
@@ -59,6 +59,8 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 Umami has no concept of IDFA and does not need App Tracking Transparency. The visitor id is random, exists only in memory, and rotates at least daily, so it cannot follow a user across days, installs, or devices, and nothing identifying is ever written to the device. This keeps the app client on the same footing as Umami's cookieless web tracking, where nothing is stored in the browser either.
 
 Versions 1.0 and 1.1 stored a persistent install id in `UserDefaults`; 1.2.0 deletes that key the first time `configure` runs, so updating also removes the old identifier from the device.
+
+From 1.3.0, `baseURL` is a required argument. Earlier versions defaulted it to my own ingest host, which meant a missing `baseURL` would silently send another app's events to my server. Passing it explicitly makes the destination a deliberate choice. If you were relying on the old default, pass `baseURL: URL(string: "https://hjerpbakk-analytics.fly.dev")!`.
 
 ## License
 

@@ -11,7 +11,7 @@ public enum Umami {
     /// and begins flushing.
     public static func configure(websiteId: String,
                                  host: String,
-                                 baseURL: URL = URL(string: "https://hjerpbakk-analytics.fly.dev")!,
+                                 baseURL: URL,
                                  flushInterval: TimeInterval = 15,
                                  maxQueueSize: Int = 500) {
         lock.lock(); defer { lock.unlock() }
