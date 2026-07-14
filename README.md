@@ -25,7 +25,7 @@ import Umami
 // At launch:
 Umami.configure(
     websiteId: "your-website-id",
-    host: "cardgame.ios",
+    host: "your-app-domain",
     baseURL: URL(string: "https://your-umami-host")!
 )
 
@@ -39,6 +39,8 @@ Umami.screen("settings")
 // Opt-out:
 Umami.setEnabled(false)
 ```
+
+`host` is the domain you entered when adding the website in Umami. Apps have no real domain, so pick a stable pseudo-domain like `myapp.ios` and use the same string in both places; keeping it stable keeps the app's data under one entry across releases.
 
 `baseURL` is required: point it at your own Umami instance. There is no default, so events only go where you send them and never to someone else's server by accident.
 
