@@ -12,7 +12,7 @@ A small Swift package that sends app analytics to a self-hosted [Umami](https://
 Add the package via Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.0.0")
+.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.2.0")
 ```
 
 ## Usage
@@ -48,7 +48,7 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 
 ## How it maps to Umami
 
-- Each install gets a random id, generated once and stored on device. That id is sent as the visitor.
+- Every event carries a random visitor id that lives in memory only and rotates when the calendar day changes. Nothing is stored on the device, so usage on different days can never be linked. Since the id dies with the process, each app launch in practice counts as a new visitor; a day is the id's ceiling, not its typical lifetime. This mirrors the anonymous, cookieless model Umami uses on the web, where visitors are a rotating server-side hash rather than a stored identifier.
 - A pageview for `/` and an `app_started` event are sent on launch and each time the app returns to the foreground. The pageview is what populates the dashboard's Overview tab (visitors, visits, views); custom events alone only show up under Events.
 - `Umami.screen("settings")` sends a pageview for `/settings`, so screens show up in the pages list and add to the view count. Use it if you want per-screen numbers; skip it if launches are enough.
 - Anything passed as event data (like `level` and `won` above) shows up as metadata on the event in Umami.
@@ -56,7 +56,9 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 
 ## Privacy
 
-Umami has no concept of IDFA and does not need App Tracking Transparency. The install id lives in `UserDefaults` and resets if the app is uninstalled and reinstalled, so it does not follow a user across installs or devices.
+Umami has no concept of IDFA and does not need App Tracking Transparency. The visitor id is random, exists only in memory, and rotates at least daily, so it cannot follow a user across days, installs, or devices, and nothing identifying is ever written to the device. This keeps the app client on the same footing as Umami's cookieless web tracking, where nothing is stored in the browser either.
+
+Versions 1.0 and 1.1 stored a persistent install id in `UserDefaults`; 1.2.0 deletes that key the first time `configure` runs, so updating also removes the old identifier from the device.
 
 ## License
 

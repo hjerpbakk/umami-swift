@@ -22,9 +22,11 @@ public enum Umami {
         let config = Configuration(websiteId: websiteId, host: host, baseURL: baseURL,
                                    flushInterval: flushInterval, maxQueueSize: maxQueueSize,
                                    batchSize: 20)
+        // 1.0 and 1.1 stored a persistent install id; updating removes it.
+        VisitorID.removeLegacyInstallId()
         let c = UmamiClient(config: config,
                             deviceInfo: .current(),
-                            installId: InstallID.get(),
+                            visitorId: VisitorID(),
                             queue: EventQueue(fileURL: EventQueue.defaultFileURL(),
                                               maxSize: maxQueueSize),
                             uploader: NetworkUploader(session: .shared),

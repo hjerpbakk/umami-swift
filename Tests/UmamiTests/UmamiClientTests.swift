@@ -32,7 +32,7 @@ final class UmamiClientTests: XCTestCase {
     func testReachingBatchSizeFlushesWithMergedMetadata() {
         let uploader = RecordingUploader()
         let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
-                                 installId: "inst", queue: EventQueue(fileURL: tempFile(), maxSize: 500),
+                                 visitorId: VisitorID(), queue: EventQueue(fileURL: tempFile(), maxSize: 500),
                                  uploader: uploader, defaults: makeDefaults())
         let exp = expectation(description: "uploaded")
         client.onUploadFinished = { _ in exp.fulfill() }
@@ -50,7 +50,7 @@ final class UmamiClientTests: XCTestCase {
         let uploader = RecordingUploader()
         let queue = EventQueue(fileURL: tempFile(), maxSize: 500)
         let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
-                                 installId: "i", queue: queue, uploader: uploader,
+                                 visitorId: VisitorID(), queue: queue, uploader: uploader,
                                  defaults: makeDefaults())
         let exp = expectation(description: "done")
         client.onUploadFinished = { _ in exp.fulfill() }
@@ -65,7 +65,7 @@ final class UmamiClientTests: XCTestCase {
         uploader.result = false
         let queue = EventQueue(fileURL: tempFile(), maxSize: 500)
         let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
-                                 installId: "i", queue: queue, uploader: uploader,
+                                 visitorId: VisitorID(), queue: queue, uploader: uploader,
                                  defaults: makeDefaults())
         let exp = expectation(description: "done")
         client.onUploadFinished = { _ in exp.fulfill() }
@@ -78,7 +78,7 @@ final class UmamiClientTests: XCTestCase {
     func testScreenSendsPageviewWithNormalizedPath() {
         let uploader = RecordingUploader()
         let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
-                                 installId: "i", queue: EventQueue(fileURL: tempFile(), maxSize: 500),
+                                 visitorId: VisitorID(), queue: EventQueue(fileURL: tempFile(), maxSize: 500),
                                  uploader: uploader, defaults: makeDefaults())
         let exp = expectation(description: "uploaded")
         client.onUploadFinished = { _ in exp.fulfill() }
@@ -95,7 +95,7 @@ final class UmamiClientTests: XCTestCase {
         let uploader = RecordingUploader()
         let queue = EventQueue(fileURL: tempFile(), maxSize: 500)
         let client = UmamiClient(config: config(batchSize: 20), deviceInfo: device(),
-                                 installId: "i", queue: queue, uploader: uploader,
+                                 visitorId: VisitorID(), queue: queue, uploader: uploader,
                                  defaults: makeDefaults())
         client.start()
         client.drainForTesting()
@@ -113,7 +113,7 @@ final class UmamiClientTests: XCTestCase {
         let defaults = makeDefaults()
         EnabledFlag.set(false, defaults)
         let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
-                                 installId: "i", queue: queue, uploader: uploader,
+                                 visitorId: VisitorID(), queue: queue, uploader: uploader,
                                  defaults: defaults)
         client.start()
         client.drainForTesting()
@@ -125,7 +125,7 @@ final class UmamiClientTests: XCTestCase {
         let uploader = RecordingUploader()
         let queue = EventQueue(fileURL: tempFile(), maxSize: 500)
         let client = UmamiClient(config: config(batchSize: 1), deviceInfo: device(),
-                                 installId: "i", queue: queue, uploader: uploader,
+                                 visitorId: VisitorID(), queue: queue, uploader: uploader,
                                  defaults: makeDefaults())
         client.setEnabled(false)
         client.track("e")

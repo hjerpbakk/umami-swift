@@ -1,6 +1,6 @@
 enum PayloadBuilder {
     static func build(event: Event, config: Configuration,
-                      device: DeviceInfo, installId: String) -> UmamiPayload {
+                      device: DeviceInfo, visitorId: String) -> UmamiPayload {
         var data: [String: AnalyticsValue] = [
             "app_version": .string(device.appVersion),
             "build": .string(device.build),
@@ -12,7 +12,7 @@ enum PayloadBuilder {
         return UmamiPayload(payload: .init(
             website: config.websiteId,
             hostname: config.host,
-            id: installId,
+            id: visitorId,
             name: event.name,
             title: event.title,
             url: event.url ?? "/",

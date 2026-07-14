@@ -7,7 +7,7 @@ import UIKit
 final class UmamiClient {
     private let config: Configuration
     private let deviceInfo: DeviceInfo
-    private let installId: String
+    private let visitorId: VisitorID
     private let queue: EventQueue
     private let uploader: EventUploader
     private let defaults: UserDefaults
@@ -23,11 +23,11 @@ final class UmamiClient {
     var onUploadFinished: ((Bool) -> Void)?
     func drainForTesting() { work.sync {} }
 
-    init(config: Configuration, deviceInfo: DeviceInfo, installId: String,
+    init(config: Configuration, deviceInfo: DeviceInfo, visitorId: VisitorID,
          queue: EventQueue, uploader: EventUploader, defaults: UserDefaults) {
         self.config = config
         self.deviceInfo = deviceInfo
-        self.installId = installId
+        self.visitorId = visitorId
         self.queue = queue
         self.uploader = uploader
         self.defaults = defaults
@@ -75,8 +75,9 @@ final class UmamiClient {
         guard isEnabled, !flushing, queue.count > 0, Date() >= nextAttempt else { return }
         let batch = queue.peekBatch(config.batchSize)
         guard !batch.isEmpty else { return }
+        let visitor = visitorId.current()
         let payloads = batch.map {
-            PayloadBuilder.build(event: $0, config: config, device: deviceInfo, installId: installId)
+            PayloadBuilder.build(event: $0, config: config, device: deviceInfo, visitorId: visitor)
         }
         let userAgent = PayloadBuilder.userAgent(config: config, device: deviceInfo)
         flushing = true

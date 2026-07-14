@@ -16,14 +16,14 @@ final class PayloadBuilderTests: XCTestCase {
     func testMapsFieldsAndInjectsMetadata() throws {
         let event = Event(name: "game_started", data: ["difficulty": "hard"])
         let payload = PayloadBuilder.build(event: event, config: fixtureConfig(),
-                                           device: fixtureDevice(), installId: "install-9")
+                                           device: fixtureDevice(), visitorId: "visitor-9")
         let data = try JSONEncoder().encode(payload)
         let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
         XCTAssertEqual(json["type"] as? String, "event")
         let p = json["payload"] as! [String: Any]
         XCTAssertEqual(p["website"] as? String, "web-123")
         XCTAssertEqual(p["hostname"] as? String, "cardgame.ios")
-        XCTAssertEqual(p["id"] as? String, "install-9")
+        XCTAssertEqual(p["id"] as? String, "visitor-9")
         XCTAssertEqual(p["name"] as? String, "game_started")
         XCTAssertEqual(p["url"] as? String, "/")
         XCTAssertEqual(p["language"] as? String, "nb-NO")
@@ -39,14 +39,14 @@ final class PayloadBuilderTests: XCTestCase {
     func testCallerPropertyOverridesMetadataOnCollision() {
         let event = Event(name: "e", data: ["app_version": "override"])
         let payload = PayloadBuilder.build(event: event, config: fixtureConfig(),
-                                           device: fixtureDevice(), installId: "x")
+                                           device: fixtureDevice(), visitorId: "x")
         XCTAssertEqual(payload.payload.data["app_version"], .string("override"))
     }
 
     func testPageviewOmitsNameAndCarriesPathAndTitle() throws {
         let event = Event(name: nil, url: "/calendar", title: "calendar", data: [:])
         let payload = PayloadBuilder.build(event: event, config: fixtureConfig(),
-                                           device: fixtureDevice(), installId: "install-9")
+                                           device: fixtureDevice(), visitorId: "visitor-9")
         let data = try JSONEncoder().encode(payload)
         let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
         let p = json["payload"] as! [String: Any]
