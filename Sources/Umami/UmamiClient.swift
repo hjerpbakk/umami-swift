@@ -1,6 +1,8 @@
 import Foundation
 import os
-#if canImport(UIKit)
+#if os(watchOS)
+import WatchKit
+#elseif canImport(UIKit)
 import UIKit
 #endif
 
@@ -111,7 +113,16 @@ final class UmamiClient {
     }
 
     private func observeLifecycle() {
-        #if canImport(UIKit)
+        #if os(watchOS)
+        let nc = NotificationCenter.default
+        nc.addObserver(forName: WKApplication.didEnterBackgroundNotification,
+                       object: nil, queue: nil) { [weak self] _ in self?.flush() }
+        nc.addObserver(forName: WKApplication.willEnterForegroundNotification,
+                       object: nil, queue: nil) { [weak self] _ in
+            self?.screen("/")
+            self?.track("app_started")
+        }
+        #elseif canImport(UIKit)
         let nc = NotificationCenter.default
         nc.addObserver(forName: UIApplication.didEnterBackgroundNotification,
                        object: nil, queue: nil) { [weak self] _ in self?.flush() }

@@ -11,7 +11,7 @@ Two write-ups walk through the whole setup:
 
 ## Requirements
 
-- iOS 15+ or macOS 12+
+- iOS 15+, macOS 12+, or watchOS 9+
 - A running Umami instance and a website id for your app
 
 ## Installation
@@ -19,7 +19,7 @@ Two write-ups walk through the whole setup:
 Add the package via Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.3.0")
+.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.4.0")
 ```
 
 ## Usage
@@ -62,6 +62,7 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 - `Umami.screen("settings")` sends a pageview for `/settings`, so screens show up in the pages list and add to the view count. Use it if you want per-screen numbers; skip it if launches are enough.
 - Anything passed as event data (like `level` and `won` above) shows up as metadata on the event in Umami.
 - On macOS there's no foreground/background lifecycle to hook into, so `app_started` only fires once, on launch, and one run of the app counts as one session. Events are still sent while the app runs, on the periodic flush timer, and anything not yet sent when the app quits is kept on disk and sent the next time it launches.
+- On watchOS the same lifecycle hooks exist as on iOS: entering the background flushes the queue, and returning to the foreground sends a new launch pageview and `app_started`. Watch apps are backgrounded aggressively, so expect more, shorter sessions than on iPhone. If a watch app and its iPhone app share one website id, prefix the watch screen and event names (for example `watch-menu` and `watch_game_started`) so the platforms stay distinguishable.
 
 ## Privacy
 

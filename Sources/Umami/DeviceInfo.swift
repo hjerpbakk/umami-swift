@@ -1,5 +1,7 @@
 import Foundation
-#if canImport(UIKit)
+#if os(watchOS)
+import WatchKit
+#elseif canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -76,7 +78,13 @@ extension DeviceInfo {
     }
 
     private static func screenSize() -> String {
-        #if canImport(UIKit)
+        #if os(watchOS)
+        // watchOS has no UIScreen; WKInterfaceDevice is the only screen API.
+        let d = WKInterfaceDevice.current()
+        let b = d.screenBounds
+        let s = d.screenScale
+        return "\(Int(b.width * s))x\(Int(b.height * s))"
+        #elseif canImport(UIKit)
         let b = UIScreen.main.bounds
         let s = UIScreen.main.scale
         return "\(Int(b.width * s))x\(Int(b.height * s))"

@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Umami",
-    platforms: [.iOS(.v15), .macOS(.v12)],
+    platforms: [.iOS(.v15), .macOS(.v12), .watchOS(.v9)],
     products: [
         .library(name: "Umami", targets: ["Umami"]),
     ],
