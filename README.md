@@ -19,7 +19,7 @@ Two write-ups walk through the whole setup:
 Add the package via Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.4.0")
+.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.5.0")
 ```
 
 ## Usage
@@ -43,6 +43,9 @@ Umami.track("level_completed", ["level": 7, "won": true])
 // When the user moves to another screen:
 Umami.screen("settings")
 
+// When a handled error is worth counting:
+Umami.error("save_failed", error)
+
 // Opt-out:
 Umami.setEnabled(false)
 ```
@@ -61,6 +64,7 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 - A pageview for `/` and an `app_started` event are sent on launch and each time the app returns to the foreground. The pageview is what populates the dashboard's Overview tab (visitors, visits, views); custom events alone only show up under Events.
 - `Umami.screen("settings")` sends a pageview for `/settings`, so screens show up in the pages list and add to the view count. Use it if you want per-screen numbers; skip it if launches are enough.
 - Anything passed as event data (like `level` and `won` above) shows up as metadata on the event in Umami.
+- `Umami.error("save_failed", error)` sends a custom event named `error_save_failed`, so errors sort together in the Events tab and each failure path gets its own count. Pass a static, snake-case name for the failure path; the optional `Error` value adds the error's type, domain, and code as metadata. Cancellations are control flow, not failures, so don't report them.
 - On macOS there's no foreground/background lifecycle to hook into, so `app_started` only fires once, on launch, and one run of the app counts as one session. Events are still sent while the app runs, on the periodic flush timer, and anything not yet sent when the app quits is kept on disk and sent the next time it launches.
 - On watchOS the same lifecycle hooks exist as on iOS: entering the background flushes the queue, and returning to the foreground sends a new launch pageview and `app_started`. Watch apps are backgrounded aggressively, so expect more, shorter sessions than on iPhone. If a watch app and its iPhone app share one website id, prefix the watch screen and event names (for example `watch-menu` and `watch_game_started`) so the platforms stay distinguishable.
 
@@ -71,6 +75,8 @@ Umami has no concept of IDFA and does not need App Tracking Transparency. The vi
 Versions 1.0 and 1.1 stored a persistent install id in `UserDefaults`; 1.2.0 deletes that key the first time `configure` runs, so updating also removes the old identifier from the device.
 
 From 1.3.0, `baseURL` is a required argument. Earlier versions defaulted it to my own ingest host, which meant a missing `baseURL` would silently send another app's events to my server. Passing it explicitly makes the destination a deliberate choice. If you were relying on the old default, pass `baseURL: URL(string: "https://hjerpbakk-analytics.fly.dev")!`.
+
+From 1.5.0, `Umami.error` reports handled errors. An error report carries only the static name you pass plus the error's type, domain, and code, which are identifiers baked into code. The client never reads `localizedDescription` or `userInfo`, so message text, file paths, and anything the user typed can never end up in an error report. There is no data parameter on purpose: an error event stays exactly as anonymous as every other event.
 
 ## License
 

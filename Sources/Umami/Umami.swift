@@ -46,6 +46,15 @@ public enum Umami {
         currentClient()?.screen(name, data)
     }
 
+    /// Reports a handled error, e.g. `Umami.error("save_failed", error)`. Sent
+    /// as an event named `error_<name>` so errors group together in the Events
+    /// tab. Only the error's type, domain, and code are attached; the message
+    /// and `userInfo` are never read, so no user content can leak into
+    /// analytics. Pass a static, snake-case name describing the failure path.
+    public static func error(_ name: String, _ error: (any Error)? = nil) {
+        currentClient()?.error(name, error)
+    }
+
     public static func setEnabled(_ enabled: Bool) { EnabledFlag.set(enabled) }
 
     public static var isEnabled: Bool { EnabledFlag.get() }

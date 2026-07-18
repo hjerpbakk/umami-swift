@@ -50,6 +50,13 @@ final class UmamiClient {
         enqueue(Event(name: name, data: data))
     }
 
+    /// Reports a handled error as a custom event named `error_<name>`,
+    /// carrying only the error's type, domain, and code.
+    func error(_ name: String, _ error: (any Error)? = nil) {
+        let prefixed = name.hasPrefix("error_") ? name : "error_" + name
+        enqueue(Event(name: prefixed, data: ErrorMetadata.data(for: error)))
+    }
+
     /// Records a screen view as a pageview (a payload without an event name),
     /// which is what the dashboard's Overview tab counts.
     func screen(_ name: String, _ data: [String: AnalyticsValue] = [:]) {
