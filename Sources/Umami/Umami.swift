@@ -8,12 +8,15 @@ public enum Umami {
     private static let log = Logger(subsystem: "com.hjerpbakk.umami", category: "facade")
 
     /// Configure once at launch. Auto-sends a launch pageview plus `app_started`
-    /// and begins flushing.
+    /// and begins flushing. With `reportCrashes` (the default), a crash leaves
+    /// a marker holding only the exception or signal name, and the next launch
+    /// reports it as an `error_app_crashed` event; pass `false` to opt out.
     public static func configure(websiteId: String,
                                  host: String,
                                  baseURL: URL,
                                  flushInterval: TimeInterval = 15,
-                                 maxQueueSize: Int = 500) {
+                                 maxQueueSize: Int = 500,
+                                 reportCrashes: Bool = true) {
         lock.lock(); defer { lock.unlock() }
         guard client == nil else {
             log.debug("Umami.configure called more than once; ignoring")
@@ -30,9 +33,13 @@ public enum Umami {
                             queue: EventQueue(fileURL: EventQueue.defaultFileURL(),
                                               maxSize: maxQueueSize),
                             uploader: NetworkUploader(session: .shared),
-                            defaults: .standard)
+                            defaults: .standard,
+                            crashMarkerURL: reportCrashes ? CrashMarkerStore.defaultFileURL() : nil)
         client = c
         c.start()
+        if reportCrashes {
+            CrashWatcher.install(markerURL: CrashMarkerStore.defaultFileURL())
+        }
     }
 
     public static func track(_ name: String, _ data: [String: AnalyticsValue] = [:]) {

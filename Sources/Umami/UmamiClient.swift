@@ -13,6 +13,7 @@ final class UmamiClient {
     private let queue: EventQueue
     private let uploader: EventUploader
     private let defaults: UserDefaults
+    private let crashMarkerURL: URL?
     private let work = DispatchQueue(label: "com.hjerpbakk.umami")
     private let log = Logger(subsystem: "com.hjerpbakk.umami", category: "client")
 
@@ -26,13 +27,15 @@ final class UmamiClient {
     func drainForTesting() { work.sync {} }
 
     init(config: Configuration, deviceInfo: DeviceInfo, visitorId: VisitorID,
-         queue: EventQueue, uploader: EventUploader, defaults: UserDefaults) {
+         queue: EventQueue, uploader: EventUploader, defaults: UserDefaults,
+         crashMarkerURL: URL? = nil) {
         self.config = config
         self.deviceInfo = deviceInfo
         self.visitorId = visitorId
         self.queue = queue
         self.uploader = uploader
         self.defaults = defaults
+        self.crashMarkerURL = crashMarkerURL
     }
 
     var isEnabled: Bool { EnabledFlag.get(defaults) }
@@ -42,8 +45,21 @@ final class UmamiClient {
     func start() {
         startTimer()
         observeLifecycle()
+        reportPendingCrash()
         screen("/")
         track("app_started")
+    }
+
+    /// Reports a crash from the previous run, left behind as a marker by
+    /// `CrashWatcher`, then deletes the marker so it is reported once.
+    private func reportPendingCrash() {
+        guard let crashMarkerURL, isEnabled,
+              let marker = CrashMarkerStore.consume(at: crashMarkerURL) else { return }
+        enqueue(Event(name: "error_app_crashed", data: [
+            "error_type": .string(marker.name),
+            "error_domain": .string(marker.kind.rawValue),
+            "error_code": .int(marker.code)
+        ]))
     }
 
     func track(_ name: String, _ data: [String: AnalyticsValue] = [:]) {
