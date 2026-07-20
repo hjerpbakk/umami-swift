@@ -2,12 +2,15 @@
 
 A small Swift package that sends app analytics to a self-hosted [Umami](https://umami.is) backend. It is privacy-first (no IDFA, no App Tracking Transparency prompt) and has no third-party dependencies.
 
+![An iOS app with umami-swift sending events over HTTPS straight to the Umami container on Fly.io, which writes to Supabase, while the Cloudflare Worker used by websites is skipped](https://hjerpbakk.com/img/umami-for-apps/app-analytics.png)
+
 ## Guides
 
 Two write-ups walk through the whole setup:
 
 - [Self-hosting Umami](https://hjerpbakk.com/blog/2026/07/11/self-hosting-umami): standing up the Umami backend on Fly.io with a Cloudflare Worker in front.
 - [Umami for apps](https://hjerpbakk.com/blog/2026/07/14/umami-for-apps): adding this package to an app and how the events show up in Umami.
+- [Reporting app errors](https://hjerpbakk.com/blog/2026/07/19/umami-error-reporting): counting handled errors and crashes as plain Umami events.
 
 ## Requirements
 
@@ -21,6 +24,8 @@ Add the package via Swift Package Manager:
 ```swift
 .package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.6.0")
 ```
+
+See the [changelog](CHANGELOG.md) for what changed in each version.
 
 ## Usage
 
@@ -73,13 +78,7 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 
 Umami has no concept of IDFA and does not need App Tracking Transparency. The visitor id is random, exists only in memory, and rotates at least daily, so it cannot follow a user across days, installs, or devices, and nothing identifying is ever written to the device. This keeps the app client on the same footing as Umami's cookieless web tracking, where nothing is stored in the browser either.
 
-Versions 1.0 and 1.1 stored a persistent install id in `UserDefaults`; 1.2.0 deletes that key the first time `configure` runs, so updating also removes the old identifier from the device.
-
-From 1.3.0, `baseURL` is a required argument. Earlier versions defaulted it to my own ingest host, which meant a missing `baseURL` would silently send another app's events to my server. Passing it explicitly makes the destination a deliberate choice. If you were relying on the old default, pass `baseURL: URL(string: "https://hjerpbakk-analytics.fly.dev")!`.
-
-From 1.5.0, `Umami.error` reports handled errors. An error report carries only the static name you pass plus the error's type, domain, and code, which are identifiers baked into code. The client never reads `localizedDescription` or `userInfo`, so message text, file paths, and anything the user typed can never end up in an error report. There is no data parameter on purpose: an error event stays exactly as anonymous as every other event.
-
-From 1.6.0, crashes are counted too. The crash handler writes only the exception or signal name to a one-line marker file; the exception's `reason` and `userInfo` are never read, and no stack trace is collected or sent. The marker holds nothing about the user or the session, so it changes nothing about the consent-free position. For stack traces, use Apple's crash reports in Xcode Organizer; this event only answers how often crashes happen and whether a release fixed them.
+Error and crash reports stay just as anonymous. An error report carries only the static name you pass plus the error's type, domain, and code, all identifiers baked into code. The client never reads `localizedDescription` or `userInfo`, so message text, file paths, and anything the user typed can never end up in a report. A crash report carries only the exception or signal name, never its `reason`, `userInfo`, or a stack trace. Error events take no data parameter, on purpose, so each one stays exactly as anonymous as every other event.
 
 ## License
 
