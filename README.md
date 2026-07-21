@@ -6,7 +6,7 @@ A small Swift package that sends app analytics to a self-hosted [Umami](https://
 
 ## Guides
 
-Two write-ups walk through the whole setup:
+Three write-ups walk through the whole setup:
 
 - [Self-hosting Umami](https://hjerpbakk.com/blog/2026/07/11/self-hosting-umami): standing up the Umami backend on Fly.io with a Cloudflare Worker in front.
 - [Umami for apps](https://hjerpbakk.com/blog/2026/07/14/umami-for-apps): adding this package to an app and how the events show up in Umami.
