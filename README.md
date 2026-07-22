@@ -4,14 +4,6 @@ A small Swift package that sends app analytics to a self-hosted [Umami](https://
 
 ![An iOS app with umami-swift sending events over HTTPS straight to the Umami container on Fly.io, which writes to Supabase, while the Cloudflare Worker used by websites is skipped](https://hjerpbakk.com/img/umami-for-apps/app-analytics.png)
 
-## Guides
-
-Three write-ups walk through the whole setup:
-
-- [Self-hosting Umami](https://hjerpbakk.com/blog/2026/07/11/self-hosting-umami): standing up the Umami backend on Fly.io with a Cloudflare Worker in front.
-- [Umami for apps](https://hjerpbakk.com/blog/2026/07/14/umami-for-apps): adding this package to an app and how the events show up in Umami.
-- [Reporting app errors](https://hjerpbakk.com/blog/2026/07/19/umami-error-reporting): counting handled errors and crashes as plain Umami events.
-
 ## Requirements
 
 - iOS 15+, macOS 12+, or watchOS 9+
@@ -79,6 +71,24 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 Umami has no concept of IDFA and does not need App Tracking Transparency. The visitor id is random, exists only in memory, and rotates at least daily, so it cannot follow a user across days, installs, or devices, and nothing identifying is ever written to the device. This keeps the app client on the same footing as Umami's cookieless web tracking, where nothing is stored in the browser either.
 
 Error and crash reports stay just as anonymous. An error report carries only the static name you pass plus the error's type, domain, and code, all identifiers baked into code. The client never reads `localizedDescription` or `userInfo`, so message text, file paths, and anything the user typed can never end up in a report. A crash report carries only the exception or signal name, never its `reason`, `userInfo`, or a stack trace. Error events take no data parameter, on purpose, so each one stays exactly as anonymous as every other event.
+
+## App Store privacy questionnaire
+
+If you ship on the App Store, the App Privacy section comes down to two data types, both used for Analytics and nothing else:
+
+- Usage Data, specifically Product Interaction: the launch event, screen pageviews, and custom event counts this package sends.
+- Location, specifically Coarse Location: Umami derives a country from the request IP on the server and throws the address away. Apple counts a country-level lookup as coarse location, even though the app never touches CoreLocation and shows no permission prompt.
+
+For both, answer No to "linked to the user's identity" and No to "used for tracking": nothing on the device ties two sessions together, there is no IDFA or App Tracking Transparency prompt, and nothing is shared with a data broker. Leave Identifiers empty, since the visitor id is a random UUID that lives in memory and is never written to the device.
+
+## Guides
+
+Four write-ups go deeper than this README:
+
+- [Self-hosting Umami](https://hjerpbakk.com/blog/2026/07/11/self-hosting-umami): standing up the Umami backend on Fly.io with a Cloudflare Worker in front.
+- [Umami for apps](https://hjerpbakk.com/blog/2026/07/14/umami-for-apps): adding this package to an app and how the events show up in Umami.
+- [Reporting app errors](https://hjerpbakk.com/blog/2026/07/19/umami-error-reporting): counting handled errors and crashes as plain Umami events.
+- [Answering Apple's App Privacy questionnaire](https://hjerpbakk.com/blog/2026/07/22/umami-app-privacy): what to select in App Store Connect for an app that uses this package.
 
 ## License
 
