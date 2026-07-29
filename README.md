@@ -14,7 +14,7 @@ A small Swift package that sends app analytics to a self-hosted [Umami](https://
 Add the package via Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.6.0")
+.package(url: "https://github.com/hjerpbakk/umami-swift", from: "1.7.0")
 ```
 
 See the [changelog](CHANGELOG.md) for what changed in each version.
@@ -61,6 +61,7 @@ Event data values are passed as `AnalyticsValue`, which supports string, int, do
 - A pageview for `/` and an `app_started` event are sent on launch and each time the app returns to the foreground. The pageview is what populates the dashboard's Overview tab (visitors, visits, views); custom events alone only show up under Events.
 - `Umami.screen("settings")` sends a pageview for `/settings`, so screens show up in the pages list and add to the view count. Use it if you want per-screen numbers; skip it if launches are enough.
 - Anything passed as event data (like `level` and `won` above) shows up as metadata on the event in Umami.
+- Requests carry a standard Safari-style user agent for the platform, never the app's name or version. Umami's bot filter silently drops anything that does not look like a browser, and it matches substrings, so an app with "scan" in its name would flag as a scanner bot and lose every event. The app identifies itself through the website id and hostname in the payload instead, and the browser-shaped agent lets Umami show the right OS in the dashboard.
 - `Umami.error("save_failed", error)` sends a custom event named `error_save_failed`, so errors sort together in the Events tab and each failure path gets its own count. Pass a static, snake-case name for the failure path; the optional `Error` value adds the error's type, domain, and code as metadata. Cancellations are control flow, not failures, so don't report them.
 - A crash (an uncaught exception or a fatal signal) is reported on the next launch as an `error_app_crashed` event, carrying the exception or signal name (for example `NSRangeException` or `SIGSEGV`) in the same type/domain/code fields. Reporting from a crashing process is unreliable, so the client only writes a one-line marker at crash time and sends the event when the app starts again. Pass `reportCrashes: false` to `configure` to opt out, for example when another crash reporter owns the process.
 - On macOS there's no foreground/background lifecycle to hook into, so `app_started` only fires once, on launch, and one run of the app counts as one session. Events are still sent while the app runs, on the periodic flush timer, and anything not yet sent when the app quits is kept on disk and sent the next time it launches.

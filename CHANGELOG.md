@@ -2,6 +2,11 @@
 
 Notable changes for anyone using umami-swift, newest first. The project follows [semantic versioning](https://semver.org/), so a new major version is the only place to expect a breaking change.
 
+## 1.7.0 - 2026-07-29
+
+- The client now sends a standard Safari-style user agent for the platform (iPhone, iPad, or Mac) instead of `<host>/<version> (<model>; <os>)`. Umami's bot filter judges requests by their user agent, matches substrings, and silently drops what it flags while still answering 200, so an app whose host contained a flagged word lost every event while the client reported success. "scan" is such a word, which is how BookScanner shipped a release where analytics worked perfectly and recorded nothing.
+- The app's name and version no longer appear in the user agent at all. The payload already identifies the app (website id, hostname, `app_version`), so nothing is lost, and no app name can ever collide with a bot pattern again. A side bonus: Umami can parse the new agent, so the dashboard shows real OS versions instead of unknowns.
+
 ## 1.6.0 - 2026-07-19
 
 - Crashes are now counted automatically. An uncaught exception or fatal signal is written to a one-line marker at crash time and reported as an `error_app_crashed` event on the next launch, carrying only the exception or signal name.

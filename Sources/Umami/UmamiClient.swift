@@ -104,7 +104,7 @@ final class UmamiClient {
         let payloads = batch.map {
             PayloadBuilder.build(event: $0, config: config, device: deviceInfo, visitorId: visitor)
         }
-        let userAgent = PayloadBuilder.userAgent(config: config, device: deviceInfo)
+        let userAgent = PayloadBuilder.userAgent(device: deviceInfo)
         flushing = true
         uploader.send(payloads, to: config.baseURL, userAgent: userAgent) { [weak self] success in
             guard let self else { return }

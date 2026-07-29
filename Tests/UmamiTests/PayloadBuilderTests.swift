@@ -55,8 +55,35 @@ final class PayloadBuilderTests: XCTestCase {
         XCTAssertEqual(p["title"] as? String, "calendar")
     }
 
-    func testUserAgentFormat() {
-        let ua = PayloadBuilder.userAgent(config: fixtureConfig(), device: fixtureDevice())
-        XCTAssertEqual(ua, "cardgame.ios/1.2.0 (iPhone16,2; iOS 18.5)")
+    // The user agent must look like a real browser: Umami's bot filter (isbot)
+    // silently drops anything else with a 200, and it matches substrings, so an
+    // app name like "bookscanner" flags as a scanner bot. The app never appears
+    // in it; identity lives in the payload.
+    func testUserAgentIsSafariStyleForIPhone() {
+        let ua = PayloadBuilder.userAgent(device: fixtureDevice())
+        XCTAssertEqual(ua, "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1")
+    }
+
+    func testUserAgentIsSafariStyleForIPad() {
+        let device = DeviceInfo(appVersion: "1.2.0", build: "42", osName: "iOS",
+                                osVersion: "18.5", deviceModel: "iPad13,1",
+                                locale: "nb-NO", screen: "1640x2360")
+        let ua = PayloadBuilder.userAgent(device: device)
+        XCTAssertEqual(ua, "Mozilla/5.0 (iPad; CPU OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1")
+    }
+
+    func testUserAgentIsSafariStyleForMac() {
+        let device = DeviceInfo(appVersion: "2.0", build: "7", osName: "macOS",
+                                osVersion: "15.5", deviceModel: "Mac16,10",
+                                locale: "en-US", screen: "3456x2234")
+        let ua = PayloadBuilder.userAgent(device: device)
+        XCTAssertEqual(ua, "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15")
+    }
+
+    func testUserAgentNeverContainsAppIdentity() {
+        let ua = PayloadBuilder.userAgent(device: fixtureDevice())
+        XCTAssertFalse(ua.contains("cardgame"))
+        XCTAssertFalse(ua.contains("1.2.0"))
+        XCTAssertFalse(ua.contains("iPhone16,2"))
     }
 }
