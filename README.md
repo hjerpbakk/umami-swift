@@ -84,12 +84,13 @@ For both, answer No to "linked to the user's identity" and No to "used for track
 
 ## Guides
 
-Four write-ups go deeper than this README:
+Five write-ups go deeper than this README:
 
 - [Self-hosting Umami](https://hjerpbakk.com/blog/2026/07/11/self-hosting-umami): standing up the Umami backend on Fly.io with a Cloudflare Worker in front.
 - [Umami for apps](https://hjerpbakk.com/blog/2026/07/14/umami-for-apps): adding this package to an app and how the events show up in Umami.
 - [Reporting app errors](https://hjerpbakk.com/blog/2026/07/19/umami-error-reporting): counting handled errors and crashes as plain Umami events.
 - [Answering Apple's App Privacy questionnaire](https://hjerpbakk.com/blog/2026/07/22/umami-app-privacy): what to select in App Store Connect for an app that uses this package.
+- [When your app name looks like a bot](https://hjerpbakk.com/blog/2026/08/02/umami-bot-filter): why Umami's bot filter silently dropped every event from an app called BookScanner, and the user agent change in 1.7.0 that fixed it.
 
 ## License
 
